@@ -28,16 +28,15 @@ trace = []
 @click.argument("a2", type=click.INT, nargs=1)
 @click.argument("phi2", type=click.INT, nargs=1)
 @click.option("-s", "--speed", "speed", type=click.INT, nargs=1, default=10,
-			  show_default=True)
+              show_default=True, help="speed multiplier")
 @click.option("-r", "--rate", "rate", type=click.INT, nargs=1, default=50000,
-			  show_default=True)
+              show_default=True, help="sample rate of the oscillation")
 @click.option("-l", "--length", "length", type=click.INT, nargs=1, default=1000,
-			  show_default=True)
+              show_default=True, help="number of pixels displayed at once")
 @click.option("--size", "size", type=click.INT, nargs=1, default=5,
-			  show_default=True)
+              show_default=True, help="size of the pixels")
 def main(f1, a1, phi1, f2, a2, phi2, speed, rate, length, size):
-	""" The main function is evoked first and handles the input of
-		all parameters."""
+	""" specify the parameters of the lissajous curve """
 	global STATE
 	STATE = list(np.linspace(0, 255, length))
 	O1 = oscillator(f1, a1, phi1, rate)
@@ -53,7 +52,7 @@ def update(dt, O1, O2, n, length, size):
 		y = next(O2)
 		if len(trace) < length:
 			trace.append(pyglet.shapes.Rectangle(x+WIDTH_H, y+HEIGHT_H,
-												 size, size, batch = batch))
+                                                             size, size, batch=batch))
 		else:
 			trace[0].position = (x+WIDTH_H, y+HEIGHT_H)
 			trace.append(trace.pop(0))
