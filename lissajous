@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+"""This script serves the purpose of visualising Lissajous curves.
+   It is intended to be run in a command line environment."""
+
+import itertools
+import numpy as np
+import pyglet
+import click
+
+__author__ = "Maximilian Rieger"
+__license__ = "MIT"
+__version__ = "1.0"
+__email__ = "post@maximilian-rieger.de"
+
+window = pyglet.window.Window()
+batch = pyglet.graphics.Batch()
+WIDTH_H = window.width/2
+HEIGHT_H = window.height/2
+DELTAT = 0.01
+trace = []
+
+@click.command()
+@click.argument("f1", type=click.INT, nargs=1)
+@click.argument("a1", type=click.INT, nargs=1)
+@click.argument("phi1", type=click.INT, nargs=1)
+@click.argument("f2", type=click.INT, nargs=1)
+@click.argument("a2", type=click.INT, nargs=1)
+@click.argument("phi2", type=click.INT, nargs=1)
+@click.option("-s", "--speed", "speed", type=click.INT, nargs=1, default=10,
+			  show_default=True)
+@click.option("-r", "--rate", "rate", type=click.INT, nargs=1, default=50000,
+			  show_default=True)
+@click.option("-l", "--length", "length", type=click.INT, nargs=1, default=1000,
+			  show_default=True)
+@click.option("--size", "size", type=click.INT, nargs=1, default=5,
+			  show_default=True)
+def main(f1, a1, phi1, f2, a2, phi2, speed, rate, length, size):
+	""" The main function is evoked first and handles the input of
+		all parameters."""
+	global STATE
+	STATE = list(np.linspace(0, 255, length))
+	O1 = oscillator(f1, a1, phi1, rate)
+	O2 = oscillator(f2, a2, phi2, rate)
+	pyglet.clock.schedule_interval(update, DELTAT, O1, O2, speed, length, size)
+	pyglet.app.run()
+
+def update(dt, O1, O2, n, length, size):
+	""" The update function is evoked every DELTAT seconds and updates
+		the position of the pixels on the screen. """
+	for i in range(0, n):
+		x = next(O1)
+		y = next(O2)
+		if len(trace) < length:
+			trace.append(pyglet.shapes.Rectangle(x+WIDTH_H, y+HEIGHT_H,
+												 size, size, batch = batch))
+		else:
+			trace[0].position = (x+WIDTH_H, y+HEIGHT_H)
+			trace.append(trace.pop(0))
+	for j, elem in enumerate(trace):
+		elem.opacity = STATE[j]
+
+def oscillator(f, A, phi, rate):
+	""" The oscillator function returs an infinite, periodic iterator
+	containig the positions of an oscillator """
+	T = 1/f
+	om = 2 * np.pi * f
+	t = np.arange(0, T, 1/rate)
+	y = A * np.sin(om * (t + phi/360 * T))
+	return itertools.cycle(y)
+
+@window.event
+def on_draw():
+	window.clear()
+	batch.draw()
+
+if __name__ == "__main__":
+	main()
